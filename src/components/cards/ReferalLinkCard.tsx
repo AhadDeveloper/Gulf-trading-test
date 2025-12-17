@@ -16,7 +16,7 @@ export default function ReferralLinkCard() {
   };
 
   return (
-    <Card className="w-[90%] max-w-md mx-auto">
+    <Card className="w-[95%] max-w-md mx-auto">
       <CardContent className="space-y-4">
         {/* Link box */}
         <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
@@ -33,11 +33,6 @@ export default function ReferralLinkCard() {
             {copied ? <FiCheck className="text-green-600" /> : <FiCopy />}
           </Button>
         </div>
-
-        {/* Helper text */}
-        {/* <p className="text-xs text-gray-500">
-          Share this link and earn referral bonuses when users join.
-        </p> */}
       </CardContent>
     </Card>
   );

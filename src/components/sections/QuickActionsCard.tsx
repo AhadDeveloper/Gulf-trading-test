@@ -74,7 +74,7 @@ const actions = [
 
 export default function QuickActionsCard() {
   return (
-    <Card className="max-w-md mx-auto w-[90%]">
+    <Card className="max-w-md mx-auto w-[95%]">
       <CardContent>
         <div className="grid grid-cols-2 gap-3">
           {actions.map((action) => (

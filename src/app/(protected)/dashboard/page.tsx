@@ -9,7 +9,7 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-6 p-6">
       <UserDetailCard />
       <ReferralLinkCard />
-      <Button className="w-[90%] max-w-md mx-auto">Check Online FBR</Button>
+      <Button className="w-[95%] max-w-md mx-auto">Check Online FBR</Button>
       <QuickActionsCard />
       <DashboardStats />
     </div>

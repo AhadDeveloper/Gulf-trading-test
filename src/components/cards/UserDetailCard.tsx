@@ -1,6 +1,6 @@
 export default function UserDetailCard() {
   return (
-    <div className="max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 sm:p-8 border border-gray-200 w-[90%] sm:w-full">
+    <div className="max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 sm:p-8 border border-gray-200 w-[95%] sm:w-full">
       {/* Welcome & Balance */}
       <div className="mb-6 text-center">
         <h2 className="text-lg sm:text-xl font-semibold text-gray-700">
