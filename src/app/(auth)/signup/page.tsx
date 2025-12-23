@@ -30,11 +30,17 @@ export default function Signup() {
   useEffect(() => {
     const ref = searchParams.get("ref");
     if (ref) setValue("referredBy", ref);
-  }, [searchParams, setValue]);
+  });
 
   const onSubmit = async (data: SignupFormData) => {
-    console.log(data);
-    const response = await signup(data);
+    const payload = {
+      ...data,
+      username: data.username.trim(),
+      phone: data.phone.trim(),
+      referredBy: data.referredBy?.trim(),
+    };
+    console.log(payload);
+    const response = await signup(payload);
 
     if (response?.error) {
       toast.error(response.error);
