@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-
 import { Plan } from "@/types";
 
 export default function PlanCard({ plan }: { plan: Plan }) {
@@ -31,8 +30,9 @@ export default function PlanCard({ plan }: { plan: Plan }) {
         </p>
       </div>
 
+      {/* Pass plan id to dynamic invest page */}
       <Link
-        href="/invest"
+        href={`/deposit/${plan.id}`}
         className="mt-4 text-center py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition"
       >
         Invest

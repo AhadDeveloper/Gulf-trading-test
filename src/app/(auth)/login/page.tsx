@@ -5,21 +5,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { FiUser, FiLock, FiHome } from "react-icons/fi";
 import { IconInput } from "@/components/ui/IconInput";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-// -------------------- Zod Schema --------------------
-const loginSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-// TypeScript type inferred from Zod
-type LoginFormData = z.infer<typeof loginSchema>;
+import { login } from "@/lib/actions/auth";
+import { toast } from "sonner";
+import { loginSchema, LoginFormData } from "@/lib/validations/authSchema";
 
 // -------------------- Component --------------------
 export default function Login() {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -28,9 +23,16 @@ export default function Login() {
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = (data: LoginFormData) => {
+  const onSubmit = async (data: LoginFormData) => {
     console.log("Login Data:", data);
-    // TODO: call login API
+    const response = await login(data);
+
+    if (response?.error) {
+      toast.error(response.error);
+    } else {
+      toast.success("Logged in successfully!");
+      router.push("/dashboard");
+    }
   };
 
   return (

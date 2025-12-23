@@ -5,37 +5,43 @@ import Image from "next/image";
 import Link from "next/link";
 import { FiPhone, FiUser, FiLock, FiHome } from "react-icons/fi";
 import { IconInput } from "@/components/ui/IconInput";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-// -------------------- Zod Schema --------------------
-const signupSchema = z.object({
-  referBy: z.string().optional(),
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  phone: z
-    .string()
-    .min(10, "Phone number must be at least 10 digits")
-    .max(15, "Phone number is too long"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-// TypeScript type inferred from Zod
-type SignupFormData = z.infer<typeof signupSchema>;
+import { signupSchema, SignupFormData } from "@/lib/validations/authSchema";
+import { signup } from "@/lib/actions/auth";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 // -------------------- Component --------------------
 export default function Signup() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
   });
 
-  const onSubmit = (data: SignupFormData) => {
-    console.log("Form Data:", data);
-    // TODO: send data to backend / API
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) setValue("referredBy", ref);
+  }, [searchParams, setValue]);
+
+  const onSubmit = async (data: SignupFormData) => {
+    console.log(data);
+    const response = await signup(data);
+
+    if (response?.error) {
+      toast.error(response.error);
+    } else {
+      toast.success("Account created successfully!");
+      router.push("/dashboard");
+    }
   };
 
   return (
@@ -65,11 +71,11 @@ export default function Signup() {
               type="text"
               placeholder="Referral code"
               className="w-full bg-transparent text-sm outline-none"
-              {...register("referBy")}
+              {...register("referredBy")}
             />
           </div>
-          {errors.referBy && (
-            <p className="text-xs text-red-500">{errors.referBy.message}</p>
+          {errors.referredBy && (
+            <p className="text-xs text-red-500">{errors.referredBy.message}</p>
           )}
         </div>
 

@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { FiMenu, FiX } from "react-icons/fi";
 import TradingImg from "../../assets/trading.jpeg";
+import { logout } from "@/lib/actions/auth";
 
 import {
   FiHome,
@@ -53,11 +55,19 @@ const protectedLinks = [
     href: "/referral-bonus",
     icon: <FiDollarSign />,
   },
-  { id: 11, name: "Logout", href: "/logout", icon: <FiLogOut /> },
 ];
 
 export default function ProtectedNavbar() {
   const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+
+  const logoutHandler = () => {
+    startTransition(async () => {
+      await logout();
+      router.push("/login"); // redirect after logout
+    });
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
@@ -96,7 +106,7 @@ export default function ProtectedNavbar() {
       : "max-h-0 opacity-0 overflow-hidden"
   }`}
       >
-        <ul className="flex flex-col gap-4 py-6">
+        <ul className="flex flex-col gap-4 py-3">
           {protectedLinks.map((link) => (
             <li key={link.id}>
               <Link
@@ -110,6 +120,21 @@ export default function ProtectedNavbar() {
               </Link>
             </li>
           ))}
+          <li
+            className="mx-4 rounded-lg hover:bg-green-50 hover:text-green-600 transition"
+            key="11"
+          >
+            <button
+              onClick={logoutHandler}
+              disabled={isPending}
+              className="flex w-full items-center gap-3 px-6 py-3 text-base font-medium text-left cursor-pointer"
+            >
+              <span className="text-xl">
+                <FiLogOut />
+              </span>
+              {isPending ? "Logging out..." : "Logout"}
+            </button>
+          </li>
         </ul>
       </nav>
     </header>
