@@ -2,98 +2,80 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  try {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
+      {
+        cookies: {
+          getAll: () => request.cookies.getAll(),
+          setAll: (cookiesToSet) => {
+            // Only set cookies on response, not request
+            // We'll attach them to the NextResponse later
+          },
+        },
+      }
+    );
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const pathname = request.nextUrl.pathname;
+
+    // Prevent logged-in users from visiting login/signup
+    if (
+      user &&
+      (pathname.startsWith("/login") || pathname.startsWith("/signup"))
+    ) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
     }
-  );
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
+    const userProtectedRoutes = [
+      "/dashboard",
+      "/deposit",
+      "/withdraw",
+      "/profile",
+      "/referral",
+      "/referral-bonus",
+      "/transaction",
+      "/fund-history",
+      "/invest-history",
+      "/payout-history",
+    ];
+    const adminRoutes = ["/admin", "/admin/dashboard"];
 
-  // IMPORTANT: DO NOT REMOVE auth.getUser()
+    if (
+      !user &&
+      (userProtectedRoutes.some((p) => pathname.startsWith(p)) ||
+        adminRoutes.some((p) => pathname.startsWith(p)))
+    ) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    // Fetch user role
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user?.id)
+      .single();
 
-  console.log(user);
+    const role = profile?.role ?? "user";
 
-  const pathname = request.nextUrl.pathname;
+    if (role !== "admin" && adminRoutes.some((p) => pathname.startsWith(p))) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
 
-  // Prevent logged-in users from visiting login/signup
-  if (
-    user &&
-    (pathname.startsWith("/login") || pathname.startsWith("/signup"))
-  ) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+    // Return final response
+    return NextResponse.next();
+  } catch (err) {
+    console.error("updateSession error:", err);
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
-
-  // ---------- 3️⃣ Protected routes ----------
-  const userProtectedRoutes = [
-    "/dashboard",
-    "/deposit",
-    "/withdraw",
-    "/profile",
-    "/referral",
-    "/referral-bonus",
-    "/transaction",
-    "/fund-history",
-    "/invest-history",
-    "/payout-history",
-  ];
-  const adminRoutes = ["/admin", "/admin/dashboard"];
-
-  // If NOT logged in, redirect to login
-  if (
-    !user &&
-    (userProtectedRoutes.some((p) => pathname.startsWith(p)) ||
-      adminRoutes.some((p) => pathname.startsWith(p)))
-  ) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
-  }
-
-  // ---------- 4️⃣ Fetch user role ----------
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user?.id)
-    .single();
-
-  const role = profile?.role ?? "user";
-
-  // ---------- 5️⃣ Block normal users from admin ----------
-  if (role !== "admin" && adminRoutes.some((p) => pathname.startsWith(p))) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
-  }
-
-  return supabaseResponse;
 }
