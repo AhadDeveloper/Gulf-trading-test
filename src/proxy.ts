@@ -1,9 +1,10 @@
+// app/proxy.ts
 import { type NextRequest } from "next/server";
-import { updateSession } from "./lib/supabase/middleware";
+import { updateSession } from "./lib/supabase/proxy";
 
 export async function proxy(request: NextRequest) {
   try {
-    return await updateSession(request); // call your existing logic
+    return await updateSession(request);
   } catch (err) {
     console.error("Proxy error:", err);
     return new Response("Internal Server Error", { status: 500 });
