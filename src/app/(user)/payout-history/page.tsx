@@ -1,19 +1,65 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { getUser } from "@/lib/actions/auth";
+import { createSupabaseClient } from "@/lib/supabase/client";
 
-// Example data; replace with your API data
-const payouts: {
-  id: number;
-  date: string;
-  amount: string;
+type Withdrawal = {
+  id: string;
+  created_at: string;
+  amount: number;
   method: string;
   status: string;
-}[] = [];
-// Empty = No data; Add objects to simulate payout history
+};
 
 export default function PayoutHistory() {
-  const hasData = payouts.length > 0;
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWithdrawals = async () => {
+      setLoading(true);
+      const supabase = createSupabaseClient();
+      const user = await getUser();
+
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("withdrawals")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Failed to fetch withdrawals:", error);
+        setWithdrawals([]);
+      } else {
+        setWithdrawals(data as Withdrawal[]);
+      }
+
+      setLoading(false);
+    };
+
+    fetchWithdrawals();
+  }, []);
+
+  if (loading) {
+    return (
+      <Card className="max-w-md mx-auto w-[90%]">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">
+            Payout History
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-gray-500 py-6">
+            Loading withdrawals...
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="max-w-md mx-auto w-[90%]">
@@ -22,7 +68,7 @@ export default function PayoutHistory() {
       </CardHeader>
 
       <CardContent>
-        {!hasData ? (
+        {withdrawals.length === 0 ? (
           <div className="flex flex-col items-center gap-4 py-6 text-center">
             <p className="text-sm text-gray-500 font-medium">No Data Found!</p>
           </div>
@@ -38,12 +84,14 @@ export default function PayoutHistory() {
                 </tr>
               </thead>
               <tbody>
-                {payouts.map((item) => (
+                {withdrawals.map((item) => (
                   <tr key={item.id} className="border-b hover:bg-gray-50">
-                    <td className="px-3 py-2">{item.date}</td>
-                    <td className="px-3 py-2">{item.amount}</td>
+                    <td className="px-3 py-2">
+                      {new Date(item.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-3 py-2">Rs {item.amount}</td>
                     <td className="px-3 py-2">{item.method}</td>
-                    <td className="px-3 py-2">{item.status}</td>
+                    <td className="px-3 py-2 capitalize">{item.status}</td>
                   </tr>
                 ))}
               </tbody>

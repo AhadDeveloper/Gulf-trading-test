@@ -1,19 +1,9 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import StatusBadge from "@/components/sections/StatusBadge";
+import { getDepositHistory } from "@/lib/actions/deposit";
 
-// Example data; replace with your API data
-const deposits: {
-  id: number;
-  date: string;
-  amount: string;
-  method: string;
-  status: string;
-}[] = [];
-// Empty = No data; Add objects to simulate deposit history
-
-export default function FundsHistory() {
-  const hasData = deposits.length > 0;
+export default async function FundsHistory() {
+  const deposits = await getDepositHistory();
 
   return (
     <Card className="max-w-md mx-auto w-[90%]">
@@ -22,28 +12,35 @@ export default function FundsHistory() {
       </CardHeader>
 
       <CardContent>
-        {!hasData ? (
+        {deposits.length === 0 ? (
           <div className="flex flex-col items-center gap-4 py-6 text-center">
-            <p className="text-sm text-gray-500 font-medium">No Data Found!</p>
+            <p className="text-sm text-gray-500 font-medium">
+              No Deposit Records Found
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
-                <tr className="border-b">
+                <tr className="border-b text-gray-600">
                   <th className="px-3 py-2">Date</th>
                   <th className="px-3 py-2">Amount</th>
                   <th className="px-3 py-2">Method</th>
                   <th className="px-3 py-2">Status</th>
                 </tr>
               </thead>
+
               <tbody>
                 {deposits.map((item) => (
                   <tr key={item.id} className="border-b hover:bg-gray-50">
-                    <td className="px-3 py-2">{item.date}</td>
-                    <td className="px-3 py-2">{item.amount}</td>
-                    <td className="px-3 py-2">{item.method}</td>
-                    <td className="px-3 py-2">{item.status}</td>
+                    <td className="px-3 py-2">
+                      {new Date(item.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-3 py-2 font-medium">Rs {item.amount}</td>
+                    <td className="px-3 py-2">{item.payment_method}</td>
+                    <td className="px-3 py-2">
+                      <StatusBadge status={item.status} />
+                    </td>
                   </tr>
                 ))}
               </tbody>

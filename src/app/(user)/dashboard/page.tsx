@@ -7,6 +7,9 @@ import { getProfile } from "@/lib/actions/profile";
 import { getUser } from "@/lib/actions/auth";
 import { getReferralInfo } from "@/lib/actions/referral"; // your server action
 import Link from "next/link";
+import { getDashboardStats } from "@/lib/actions/dashboard";
+import { Suspense } from "react";
+import DashboardStatsSkeleton from "@/components/cards/DashboardStatsSkeleton";
 
 export default async function DashboardPage() {
   const user = await getUser();
@@ -16,6 +19,7 @@ export default async function DashboardPage() {
   }
 
   const { data: profile, error } = await getProfile();
+  const stats = await getDashboardStats();
 
   // Fetch referral info
   const referralInfo = await getReferralInfo(user.id);
@@ -43,7 +47,16 @@ export default async function DashboardPage() {
         <Button className="w-full">Check Online FBR</Button>
       </Link>
       <QuickActionsCard />
-      <DashboardStats />
+      <Suspense fallback={<DashboardStatsSkeleton />}>
+        <DashboardStats
+          totalDeposit={stats.totalDeposit}
+          totalWithdraw={stats.totalWithdraw}
+          totalProfit={stats.totalProfit}
+          referralBonus={stats.referralBonus}
+          totalTeam={stats.totalTeam}
+          teamInvest={stats.teamInvest}
+        />
+      </Suspense>
     </div>
   );
 }

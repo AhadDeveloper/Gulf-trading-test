@@ -37,7 +37,7 @@ const actions = [
     label: "Deposit History",
     icon: <FiClock />,
     type: "internal",
-    href: "/deposit-transactions",
+    href: "/fund-history",
     color: "bg-green-600 hover:bg-green-700",
   },
   {
@@ -45,7 +45,7 @@ const actions = [
     label: "Withdraw History",
     icon: <FiRepeat />,
     type: "internal",
-    href: "/withdraw-history",
+    href: "/payout-history",
     color: "bg-yellow-500 hover:bg-yellow-600",
   },
   {
@@ -53,7 +53,7 @@ const actions = [
     label: "Transaction History",
     icon: <FiRepeat />,
     type: "internal",
-    href: "/transactions",
+    href: "/transaction",
     color: "bg-purple-600 hover:bg-purple-700",
   },
   {
@@ -61,7 +61,7 @@ const actions = [
     label: "My Team",
     icon: <FiUserCheck />,
     type: "internal",
-    href: "/my-team",
+    href: "/team",
     color: "bg-teal-600 hover:bg-teal-700",
   },
   {

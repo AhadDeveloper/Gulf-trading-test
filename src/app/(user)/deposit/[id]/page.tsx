@@ -1,8 +1,16 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Plan } from "@/types";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  depositSchema,
+  DepositFormValues,
+} from "@/lib/validations/depositSchema";
+import { createDeposit } from "@/lib/actions/deposit";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 const plans: Plan[] = [
   { id: 1, name: "Gulf-01", price: 465, daily: 77, total: 2695 },
@@ -21,75 +29,108 @@ const plans: Plan[] = [
 
 export default function InvestPage() {
   const params = useParams();
+  const router = useRouter();
+
   const planId = Number(params.id);
   const plan = plans.find((p) => p.id === planId);
 
-  const [mobile, setMobile] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("JazzCash");
-  const [transactionId, setTransactionId] = useState("");
-
-  const mobileNumbers = ["03001234567", "03109876543"];
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<DepositFormValues>({
+    resolver: zodResolver(depositSchema),
+  });
 
   if (!plan) return <p>Plan not found</p>;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log({ planId: plan.id, mobile, paymentMethod, transactionId });
-    alert("Deposit submitted successfully!");
+  const onSubmit = async (values: DepositFormValues) => {
+    try {
+      await createDeposit({
+        planId: plan.id,
+        planName: plan.name,
+        amount: plan.price,
+        paymentMethod: values.paymentMethod,
+        mobileNumber: values.mobileNumber,
+        transactionId: values.transactionId,
+      });
+
+      toast.success("Deposit submitted successfully");
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      toast.error("Failed to submit deposit");
+    }
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 border rounded-lg mt-6">
-      <h2 className="text-xl font-bold mb-4">{plan.name} Package</h2>
-      <p className="mb-4">Amount: Rs {plan.price}</p>
+    <div className="max-w-md mx-auto mt-8 rounded-xl border bg-white shadow-sm p-6">
+      <h2 className="text-xl font-semibold mb-1">{plan.name} Package</h2>
+      <p className="text-sm text-muted-foreground mb-6">
+        Amount: <span className="font-medium">Rs {plan.price}</span>
+      </p>
 
-      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* Mobile */}
         <div>
-          <label className="block mb-1">Mobile Number</label>
+          <label className="block text-sm font-medium mb-1">
+            Mobile Number
+          </label>
           <select
-            value={mobile}
-            onChange={(e) => setMobile(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-            required
+            {...register("mobileNumber")}
+            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select Number</option>
-            {mobileNumbers.map((num) => (
-              <option key={num} value={num}>
-                {num}
-              </option>
-            ))}
+            <option value="03001234567">03001234567</option>
+            <option value="03109876543">03109876543</option>
           </select>
+          {errors.mobileNumber && (
+            <p className="text-xs text-red-500 mt-1">
+              {errors.mobileNumber.message}
+            </p>
+          )}
         </div>
 
+        {/* Payment Method */}
         <div>
-          <label className="block mb-1">Payment Method</label>
+          <label className="block text-sm font-medium mb-1">
+            Payment Method
+          </label>
           <select
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-            required
+            {...register("paymentMethod")}
+            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="JazzCash">JazzCash</option>
             <option value="Easypaisa">Easypaisa</option>
           </select>
         </div>
 
+        {/* Transaction ID */}
         <div>
-          <label className="block mb-1">Transaction ID</label>
+          <label className="block text-sm font-medium mb-1">
+            Transaction ID
+          </label>
           <input
-            type="text"
-            value={transactionId}
-            onChange={(e) => setTransactionId(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-            required
+            {...register("transactionId")}
+            placeholder="Enter transaction ID"
+            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          {errors.transactionId && (
+            <p className="text-xs text-red-500 mt-1">
+              {errors.transactionId.message}
+            </p>
+          )}
         </div>
 
+        {/* Submit */}
         <button
           type="submit"
-          className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+          disabled={isSubmitting}
+          className="w-full flex items-center justify-center gap-2 rounded-md bg-blue-600 py-2 text-white font-medium hover:bg-blue-700 disabled:opacity-60"
         >
-          Submit
+          {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isSubmitting ? "Submitting..." : "Submit Deposit"}
         </button>
       </form>
     </div>

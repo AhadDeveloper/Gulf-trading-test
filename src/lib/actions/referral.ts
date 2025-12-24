@@ -50,3 +50,53 @@ export const getReferralInfo = async (userId: string) => {
     referredBy,
   };
 };
+
+export const getMyTeam = async (userId: string) => {
+  const supabase = createSupabaseAdminClient();
+
+  const { data, error } = await supabase
+    .from("referrals")
+    .select(
+      `
+      created_at,
+      referred:profiles!referrals_referred_id_fkey (
+        id,
+        username
+      )
+    `
+    )
+    .eq("referrer_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Get team error:", error);
+    return [];
+  }
+
+  return data;
+};
+
+export const getDashboardStats = async (userId: string) => {
+  const supabase = createSupabaseAdminClient();
+
+  /* 🔹 Total Team Count */
+  const { count: totalTeam } = await supabase
+    .from("referrals")
+    .select("*", { count: "exact", head: true })
+    .eq("referrer_id", userId);
+
+  /* 🔹 Referral Bonus (safe even if table empty later) */
+  const { data: bonusData } = await supabase
+    .from("referral_bonuses")
+    .select("bonus_amount")
+    .eq("referrer_id", userId);
+
+  const referralBonus =
+    bonusData?.reduce((sum, b) => sum + Number(b.bonus_amount), 0) ?? 0;
+
+  return {
+    totalTeam: totalTeam ?? 0,
+    referralBonus,
+    teamInvest: 0, // later
+  };
+};

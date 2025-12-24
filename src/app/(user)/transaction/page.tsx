@@ -1,63 +1,90 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { getAllTransactions } from "@/lib/actions/transaction";
 
-// Example transaction data (replace with your API fetch)
-const initialTransactions: {
-  id: number;
-  date: string;
-  type: string;
-  amount: string;
-  status: string;
-}[] = [];
+type Transaction = {
+  id: string;
+  type: "deposit" | "withdraw";
+  amount: number;
+  method: string;
+  status: "pending" | "completed" | "rejected";
+  created_at: string;
+};
 
 export default function TransactionHistory() {
-  const [transactions, setTransactions] = useState(initialTransactions);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const hasData = transactions.length > 0;
-
-  // Simulate reload (replace with API fetch)
-  const handleReload = () => {
-    console.log("Reload transaction data");
-    // Example: fetch data from API and setTransactions(response)
-  };
+  useEffect(() => {
+    getAllTransactions().then((data) => {
+      setTransactions(data as Transaction[]);
+      setLoading(false);
+    });
+  }, []);
 
   return (
     <Card className="max-w-md mx-auto w-[90%]">
       <CardHeader>
         <CardTitle className="text-lg font-semibold">
-          Transaction History
+          All Transactions
         </CardTitle>
       </CardHeader>
 
       <CardContent>
-        {!hasData ? (
-          <div className="flex flex-col items-center gap-4 py-6 text-center">
-            <p className="text-sm text-gray-500 font-medium">No Data Found!</p>
-            <Button onClick={handleReload} size="sm" variant="outline">
-              Reload
-            </Button>
-          </div>
+        {loading ? (
+          <p className="text-sm text-gray-500 text-center py-6">
+            Loading transactions...
+          </p>
+        ) : transactions.length === 0 ? (
+          <p className="text-sm text-gray-500 text-center py-6">
+            No Data Found!
+          </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm border-collapse">
+            <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b">
                   <th className="px-3 py-2">Date</th>
                   <th className="px-3 py-2">Type</th>
                   <th className="px-3 py-2">Amount</th>
+                  <th className="px-3 py-2">Method</th>
                   <th className="px-3 py-2">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {transactions.map((item) => (
                   <tr key={item.id} className="border-b hover:bg-gray-50">
-                    <td className="px-3 py-2">{item.date}</td>
-                    <td className="px-3 py-2">{item.type}</td>
-                    <td className="px-3 py-2">{item.amount}</td>
-                    <td className="px-3 py-2">{item.status}</td>
+                    <td className="px-3 py-2">
+                      {new Date(item.created_at).toLocaleDateString()}
+                    </td>
+
+                    <td
+                      className={`px-3 py-2 font-medium ${
+                        item.type === "deposit"
+                          ? "text-green-600"
+                          : "text-red-500"
+                      }`}
+                    >
+                      {item.type}
+                    </td>
+
+                    <td className="px-3 py-2">Rs {item.amount}</td>
+
+                    <td className="px-3 py-2">{item.method}</td>
+
+                    <td
+                      className={`px-3 py-2 font-medium ${
+                        item.status === "completed"
+                          ? "text-green-600"
+                          : item.status === "pending"
+                          ? "text-yellow-500"
+                          : "text-red-500"
+                      }`}
+                    >
+                      {item.status}
+                    </td>
                   </tr>
                 ))}
               </tbody>

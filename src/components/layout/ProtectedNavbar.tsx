@@ -87,14 +87,28 @@ export default function ProtectedNavbar() {
           </h1>
         </div>
 
-        {/* Menu Button */}
-        <button
-          onClick={() => setOpen(!open)}
-          className="text-2xl md:text-3xl p-2 rounded-lg hover:bg-gray-100 transition"
-          aria-label="Toggle Menu"
-        >
-          {open ? <FiX /> : <FiMenu />}
-        </button>
+        {/* Right Actions */}
+        <div className="flex items-center gap-3">
+          {/* Dashboard Button (Desktop Only) */}
+          <Link
+            href="/dashboard"
+            className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg
+                 bg-green-600 text-white hover:bg-green-700 transition
+                 text-sm font-medium"
+          >
+            <FiHome className="text-lg" />
+            Dashboard
+          </Link>
+
+          {/* Menu Button (All Screens) */}
+          <button
+            onClick={() => setOpen(!open)}
+            className="text-2xl p-2 rounded-lg hover:bg-gray-100 transition"
+            aria-label="Toggle Menu"
+          >
+            {open ? <FiX /> : <FiMenu />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Dropdown */}
