@@ -65,7 +65,7 @@ export default function InvestPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8 rounded-xl border bg-white shadow-sm p-6">
+    <div className="max-w-md mx-auto mt-8 rounded-xl border bg-white shadow-sm p-6 w-[90%]">
       <h2 className="text-xl font-semibold mb-1">{plan.name} Package</h2>
       <p className="text-sm text-muted-foreground mb-6">
         Amount: <span className="font-medium">Rs {plan.price}</span>

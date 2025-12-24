@@ -74,18 +74,20 @@ export default function ProtectedNavbar() {
       {/* Top Bar */}
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-4 md:px-8">
         {/* Logo */}
-        <div className="flex items-center gap-3">
-          <Image
-            src={TradingImg}
-            alt="Trading Logo"
-            width={40}
-            height={40}
-            className="rounded-md w-8 h-8 sm:w-10 sm:h-10"
-          />
-          <h1 className="text-lg md:text-xl font-bold uppercase tracking-wide">
-            Gulf Trading
-          </h1>
-        </div>
+        <Link href="/dashboard">
+          <div className="flex items-center gap-3">
+            <Image
+              src={TradingImg}
+              alt="Trading Logo"
+              width={40}
+              height={40}
+              className="rounded-md w-8 h-8 sm:w-10 sm:h-10"
+            />
+            <h1 className="text-lg md:text-xl font-bold uppercase tracking-wide">
+              Gulf Trading
+            </h1>
+          </div>
+        </Link>
 
         {/* Right Actions */}
         <div className="flex items-center gap-3">

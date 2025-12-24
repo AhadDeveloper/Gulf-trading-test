@@ -75,7 +75,7 @@ export async function updateSession(request: NextRequest) {
       adminRoutes.some((p) => pathname.startsWith(p)))
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
